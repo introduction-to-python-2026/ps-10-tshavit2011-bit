@@ -1,24 +1,36 @@
-import numpy as np
-from image_utils import load_image, edge_detection
-from skimage.filters import median
-from skimage.morphology import ball
 from PIL import Image
+import numpy as np
+from scipy.signal import convolve2d
 
 
-# load image
-image = load_image("image.png")
+def load_image(path):
+    image = Image.open(path)
+    image = np.array(image)
+    return image
 
-# noise suppression
-clean_image = median(image, ball(3))
 
-# edge detection
-edgeMAG = edge_detection(clean_image)
+def edge_detection(image):
+    # convert to grayscale by averaging channels
+    if len(image.shape) == 3:
+        gray = np.mean(image, axis=2)
+    else:
+        gray = image
 
-# binary conversion (threshold)
-threshold = np.mean(edgeMAG)
-edge_binary = edgeMAG > threshold
+    kernelY = np.array([
+        [ 1,  2,  1],
+        [ 0,  0,  0],
+        [-1, -2, -1]
+    ])
 
-# save result
-edge_image = Image.fromarray(edge_binary.astype(np.uint8) * 255)
-edge_image.save("my_edges.png")
+    kernelX = np.array([
+        [ 1,  0, -1],
+        [ 2,  0, -2],
+        [ 1,  0, -1]
+    ])
 
+    edgeY = convolve2d(gray, kernelY, mode="same", boundary="fill", fillvalue=0)
+    edgeX = convolve2d(gray, kernelX, mode="same", boundary="fill", fillvalue=0)
+
+    edgeMAG = edgeX**2 + edgeY**2
+
+    return edgeMAG
