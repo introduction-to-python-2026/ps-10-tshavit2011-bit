@@ -5,7 +5,6 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 image = load_image("my_image.jpg.jpeg")
 
 
